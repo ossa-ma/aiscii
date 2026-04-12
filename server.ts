@@ -13,6 +13,8 @@
  * so the browser can follow the import chain without a bundler.
  */
 
+import { readFileSync } from 'fs'
+
 const ROOT = import.meta.dir
 
 function findPort(start: number): number {
@@ -40,7 +42,7 @@ const pkgCache = new Map<string, Record<string, unknown>>()
 function readPkg(pkgName: string): Record<string, unknown> | null {
   if (pkgCache.has(pkgName)) return pkgCache.get(pkgName)!
   try {
-    const raw = require(`${ROOT}/node_modules/${pkgName}/package.json`)
+    const raw = JSON.parse(readFileSync(`${ROOT}/node_modules/${pkgName}/package.json`, 'utf-8'))
     pkgCache.set(pkgName, raw)
     return raw
   } catch {
