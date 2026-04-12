@@ -1,7 +1,15 @@
 {
   "name": "aiscii",
   "version": "0.1.0",
+  "description": "Browser-based ASCII animation runtime with a Claude Code skill for generating programs from natural language",
   "type": "module",
+  "license": "PolyForm-Shield-1.0.0",
+  "author": "Ossama Chaib",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ossa-ma/aiscii"
+  },
+  "keywords": ["ascii", "animation", "shader", "generative", "claude", "ai", "procedural", "creative-coding"],
   "bin": {
     "aiscii": "./cli.ts"
   },
