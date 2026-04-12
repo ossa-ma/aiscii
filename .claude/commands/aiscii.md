@@ -4,10 +4,32 @@ Generate an aiscii animation program based on the user's description.
 
 A browser-based ASCII animation runtime. Programs are TypeScript modules that export lifecycle functions. The runtime calls them every frame and renders the result into a DOM element.
 
+## Import paths
+
+If aiscii is installed as a package (`bun add aiscii` / `npm install aiscii`):
+```typescript
+import { run } from 'aiscii'
+import { map, centered, DENSITY } from 'aiscii/modules/math'
+import * as sdf from 'aiscii/modules/sdf'
+import { PALETTES } from 'aiscii/modules/color'
+import { noise3 } from 'aiscii/modules/noise'
+import * as vec2 from 'aiscii/modules/vec2'
+import * as buf from 'aiscii/modules/buffer'
+```
+
+If working inside the aiscii repo itself (contributors):
+```typescript
+import { map, centered, DENSITY } from '../src/modules/math'
+import * as sdf from '../src/modules/sdf'
+// etc.
+```
+
+Detect which applies by checking whether `node_modules/aiscii` exists. Default to the package import path.
+
 ## Program anatomy
 
 ```typescript
-import type { Program } from '../src/types'
+import type { Program } from 'aiscii'
 
 // Optional: override runtime settings for this program
 export const settings = {
@@ -63,20 +85,18 @@ interface Context {
 
 // What main() returns
 interface Cell {
-  char:            string   // the character to display
-  color?:          string   // CSS color, e.g. 'white', '#ff0'
-  backgroundColor?: string  // CSS color
-  fontWeight?:      string  // CSS font-weight, e.g. '700'
+  char:             string   // the character to display
+  color?:           string   // CSS color, e.g. 'white', '#ff0'
+  backgroundColor?: string   // CSS color
+  fontWeight?:      string   // CSS font-weight, e.g. '700'
 }
 ```
 
 ## Available modules
 
-Import from `../src/modules/<name>`:
-
 ### math
 ```typescript
-import { map, clamp, lerp, osc, oscBipolar, ease, smoothstep, fract, mod, centered, DENSITY } from '../src/modules/math'
+import { map, clamp, lerp, osc, oscBipolar, ease, smoothstep, fract, mod, centered, DENSITY } from 'aiscii/modules/math'
 
 map(v, inMin, inMax, outMin, outMax)  // remap a value between ranges
 clamp(v, min, max)
@@ -101,7 +121,7 @@ DENSITY.blocks   // '░▒▓█' block chars   (unicode, needs compatible font
 
 ### sdf
 ```typescript
-import * as sdf from '../src/modules/sdf'
+import * as sdf from 'aiscii/modules/sdf'
 
 // Primitives — return signed distance (negative = inside, positive = outside)
 sdf.circle(x, y, r)                   // circle at origin
@@ -114,22 +134,22 @@ sdf.triangle(x, y, r)                 // equilateral triangle
 sdf.union(a, b)                        // min(a, b)
 sdf.intersect(a, b)                    // max(a, b)
 sdf.subtract(a, b)                     // cut b from a
-sdf.smoothUnion(a, b, k)              // blended union
-sdf.smoothSubtract(a, b, k)           // blended subtract
+sdf.smoothUnion(a, b, k)               // blended union
+sdf.smoothSubtract(a, b, k)            // blended subtract
 
 // Domain ops
-sdf.repeat(x, y, px, py) → { x, y }  // tile both axes
-sdf.repeatX(x, period)                // tile x axis
+sdf.repeat(x, y, px, py) → { x, y }   // tile both axes
+sdf.repeatX(x, period)                 // tile x axis
 sdf.rotateDomain(x, y, angle) → { x, y }
 
 // Rendering helpers
-sdf.fill(d, softness?)    // SDF distance → 0-1 fill value (1 = inside)
-sdf.outline(d, width?, softness?)  // SDF distance → 0-1 outline value
+sdf.fill(d, softness?)                 // SDF distance → 0-1 fill value (1 = inside)
+sdf.outline(d, width?, softness?)      // SDF distance → 0-1 outline value
 ```
 
 ### color
 ```typescript
-import { rgb, hsl, hsla, palette, PALETTES, lerpRGB } from '../src/modules/color'
+import { rgb, hsl, hsla, palette, PALETTES, lerpRGB } from 'aiscii/modules/color'
 
 rgb(r, g, b)             // r,g,b in [0,255] → CSS string
 hsl(h, s, l)             // h [0,360], s,l [0,100] → CSS string
@@ -144,7 +164,7 @@ PALETTES.mono(t)         // grayscale
 
 ### noise
 ```typescript
-import { noise2, noise3, fbm } from '../src/modules/noise'
+import { noise2, noise3, fbm } from 'aiscii/modules/noise'
 
 noise2(x, y)                  // 2D simplex noise → [-1, 1]
 noise3(x, y, z)               // 3D simplex noise → [-1, 1]
@@ -154,13 +174,13 @@ fbm(x, y, z, octaves?)        // fractional brownian motion, layered noise
 
 ### vec2
 ```typescript
-import * as vec2 from '../src/modules/vec2'
+import * as vec2 from 'aiscii/modules/vec2'
 vec2.vec2(x, y) / add / sub / mul / div / dot / length / normalize / dist / lerp / rotate
 ```
 
 ### buffer
 ```typescript
-import * as buf from '../src/modules/buffer'
+import * as buf from 'aiscii/modules/buffer'
 buf.get(x, y, buffer, context)
 buf.set(cell, x, y, buffer, context)
 buf.fill(cell, buffer)
@@ -179,8 +199,8 @@ return d[Math.max(0, Math.min(d.length - 1, i))] ?? ' '
 
 ### SDF shape with color
 ```typescript
-import { centered } from '../src/modules/math'
-import * as sdf from '../src/modules/sdf'
+import { centered } from 'aiscii/modules/math'
+import * as sdf from 'aiscii/modules/sdf'
 
 export function main(coord, context) {
   const { x, y } = centered(coord, context)
@@ -196,8 +216,8 @@ export function main(coord, context) {
 
 ### Animated noise field
 ```typescript
-import { noise3 } from '../src/modules/noise'
-import { map, centered, DENSITY } from '../src/modules/math'
+import { noise3 } from 'aiscii/modules/noise'
+import { map, centered, DENSITY } from 'aiscii/modules/math'
 
 export function main(coord, context) {
   const { x, y } = centered(coord, context)
@@ -219,17 +239,19 @@ export function pre(context, cursor, buffer) {
 
 ### Stateful program with boot()
 ```typescript
+import type { Program } from 'aiscii'
+
 interface State { particles: Array<{ x: number; y: number; vx: number; vy: number }> }
+
 const program: Program<State> = {
   boot(context) {
     return { particles: Array.from({ length: 50 }, () => ({ x: Math.random(), y: Math.random(), vx: 0, vy: 0 })) }
   },
   pre(context, cursor, buffer, state) {
-    buf.fill({ char: ' ' }, buffer)
+    for (let i = 0; i < buffer.length; i++) buffer[i] = { char: ' ' }
     for (const p of state.particles) {
       p.x += p.vx * 0.01
       p.y += p.vy * 0.01
-      // wrap, write to buffer, etc.
     }
   }
 }
@@ -237,7 +259,7 @@ const program: Program<State> = {
 
 ## Output file location
 
-Save new programs to `/Users/ossama/Documents/Projects/aiscii/programs/<name>.ts`
+Save new programs to `./programs/<name>.ts` relative to the project root.
 
 To run: update the import in `index.html` to point to the new program file.
 
