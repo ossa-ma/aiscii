@@ -1,0 +1,13 @@
+{
+  "name": "aiscii",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "bun run server.ts",
+    "build": "bun build src/index.ts --outdir dist --target browser --sourcemap --minify",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}
