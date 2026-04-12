@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 
 import { mkdirSync, copyFileSync, existsSync, readFileSync, writeFileSync } from 'fs'
-import { join } from 'path'
+import { join, basename } from 'path'
 
 const PKG = import.meta.dir
 const CWD = process.cwd()
@@ -38,9 +38,18 @@ function init() {
     console.log(`  create  ${dest}`)
   }
 
-  // Add dev script to package.json
+  // Ensure package.json exists with a dev script
   const pkgPath = join(CWD, 'package.json')
-  if (existsSync(pkgPath)) {
+  if (!existsSync(pkgPath)) {
+    const pkg = {
+      name: basename(CWD),
+      type: 'module',
+      scripts: { dev: 'bun run server.ts' },
+      dependencies: { aiscii: 'latest' },
+    }
+    writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n')
+    console.log('  create  package.json')
+  } else {
     const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'))
     if (!pkg.scripts?.dev) {
       pkg.scripts = { ...pkg.scripts, dev: 'bun run server.ts' }
