@@ -2,6 +2,10 @@
   "name": "aiscii",
   "version": "0.1.0",
   "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./modules/*": "./src/modules/*.ts"
+  },
   "scripts": {
     "dev": "bun run server.ts",
     "build": "bun build src/index.ts --outdir dist --target browser --sourcemap --minify",
