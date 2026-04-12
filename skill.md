@@ -261,10 +261,23 @@ const program: Program<State> = {
 
 Save new programs to `./programs/<name>.ts` relative to the project root.
 
-To run: update the import in `index.html` to point to the new program file.
+After creating the program file, update `main.ts` to import and run it:
+```typescript
+import { run } from 'aiscii'
+import * as program from './programs/<name>.ts'
+
+run(program, {
+  element: document.getElementById('canvas') as HTMLElement,
+})
+```
+
+Then tell the user to run `bun dev` and open the URL, or refresh if the server is already running. Include a brief summary of the animation as a few bullet points describing the key visual techniques used.
 
 ## Rules
 
+- Do NOT start, restart, or stop the dev server yourself. Tell the user the command to run.
+- Do NOT curl, fetch, or open the dev server URL to verify output.
+- ALWAYS update `main.ts` to import the new program after creating it.
 - Use `centered()` before any SDF math — never do SDF in raw u/v space
 - `DENSITY` strings are ordered dark→light. Index 0 = darkest, last index = brightest.
 - `time` is milliseconds. Multiply by small numbers (0.0005–0.002) for readable speeds.

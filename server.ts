@@ -76,10 +76,13 @@ function resolveSpecifier(specifier: string): string | null {
   const exports = pkg['exports'] as Record<string, string> | undefined
   if (!exports) return null
 
+  // Normalize a relative path like './src/index.ts' to 'src/index.ts'
+  const norm = (p: string) => p.replace(/^\.\//, '')
+
   // Direct match (e.g. '.' or './modules/math')
   const direct = exports[subpath]
   if (typeof direct === 'string') {
-    return `/node_modules/${pkgName}/${direct}`
+    return `/node_modules/${pkgName}/${norm(direct)}`
   }
 
   // Glob match (e.g. './modules/*' matching './modules/sdf')
@@ -88,7 +91,7 @@ function resolveSpecifier(specifier: string): string | null {
     const regex = new RegExp(`^${pattern.replace('*', '(.*)')}$`)
     const match = subpath.match(regex)
     if (match?.[1] && typeof target === 'string') {
-      return `/node_modules/${pkgName}/${target.replace('*', match[1])}`
+      return `/node_modules/${pkgName}/${norm(target.replace('*', match[1]))}`
     }
   }
 
