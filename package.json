@@ -2,8 +2,12 @@
   "name": "aiscii",
   "version": "0.1.0",
   "type": "module",
+  "bin": {
+    "aiscii": "./cli.ts"
+  },
   "files": [
     "src/",
+    "cli.ts",
     "skill.md",
     "server.ts",
     "templates/"
