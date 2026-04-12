@@ -82,6 +82,37 @@ export function main(coord, context) {
 | `aiscii/modules/vec2` | 2D vector math |
 | `aiscii/modules/buffer` | Safe read/write operations on the cell buffer |
 
+## Use on your site
+
+Install aiscii in your project:
+
+```bash
+npm install aiscii
+```
+
+Copy your program file into your project, then mount it:
+
+```typescript
+import { run } from 'aiscii'
+import * as program from './programs/my-animation.ts'
+
+run(program, {
+  element: document.getElementById('my-element'),
+})
+```
+
+Works with any bundler (Vite, webpack, Next.js, Astro). The package ships compiled JS — no TypeScript config needed.
+
+For a quick embed without a bundler:
+
+```html
+<pre id="aiscii" style="width:100%;height:400px;background:#000;font-family:monospace;font-size:13px;line-height:1.2em"></pre>
+<script type="module">
+  import { run } from 'https://unpkg.com/aiscii/dist/index.js'
+  // paste your program's main() here or import a hosted program file
+</script>
+```
+
 ## License
 
 [PolyForm Shield 1.0.0](LICENSE) — free to use, modify, and distribute. You may not use it to build a competing product.

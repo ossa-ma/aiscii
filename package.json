@@ -15,19 +15,29 @@
   },
   "files": [
     "src/",
+    "dist/",
+    "programs/",
     "cli.ts",
     "skill.md",
     "server.ts",
     "templates/"
   ],
   "exports": {
-    ".": "./src/index.ts",
-    "./modules/*": "./src/modules/*.ts"
+    ".": {
+      "bun": "./src/index.ts",
+      "default": "./dist/index.js"
+    },
+    "./modules/*": {
+      "bun": "./src/modules/*.ts",
+      "default": "./dist/modules/*.js"
+    },
+    "./programs/*": "./programs/*.ts"
   },
   "scripts": {
     "dev": "bun run server.ts",
-    "build": "bun build src/index.ts --outdir dist --target browser --sourcemap --minify",
-    "typecheck": "tsc --noEmit"
+    "build": "bun build src/index.ts --outdir dist --target browser --sourcemap --minify && bun build src/modules/math.ts src/modules/sdf.ts src/modules/color.ts src/modules/noise.ts src/modules/vec2.ts src/modules/buffer.ts --outdir dist/modules --target browser --sourcemap --minify",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "bun run build"
   },
   "devDependencies": {
     "typescript": "^5.4.0"
