@@ -73,24 +73,36 @@ function resolveSpecifier(specifier: string): string | null {
   const pkg = readPkg(pkgName)
   if (!pkg) return null
 
-  const exports = pkg['exports'] as Record<string, string> | undefined
+  const exports = pkg['exports'] as Record<string, unknown> | undefined
   if (!exports) return null
 
   // Normalize a relative path like './src/index.ts' to 'src/index.ts'
   const norm = (p: string) => p.replace(/^\.\//, '')
 
+  // Resolve a conditional export value: { bun: "...", default: "..." } or plain string
+  const resolveCondition = (value: unknown): string | null => {
+    if (typeof value === 'string') return value
+    if (value && typeof value === 'object') {
+      const cond = value as Record<string, string>
+      return cond['bun'] ?? cond['default'] ?? null
+    }
+    return null
+  }
+
   // Direct match (e.g. '.' or './modules/math')
-  const direct = exports[subpath]
-  if (typeof direct === 'string') {
+  const direct = resolveCondition(exports[subpath])
+  if (direct) {
     return `/node_modules/${pkgName}/${norm(direct)}`
   }
 
   // Glob match (e.g. './modules/*' matching './modules/sdf')
-  for (const [pattern, target] of Object.entries(exports)) {
+  for (const [pattern, value] of Object.entries(exports)) {
     if (!pattern.includes('*')) continue
+    const target = resolveCondition(value)
+    if (!target) continue
     const regex = new RegExp(`^${pattern.replace('*', '(.*)')}$`)
     const match = subpath.match(regex)
-    if (match?.[1] && typeof target === 'string') {
+    if (match?.[1]) {
       return `/node_modules/${pkgName}/${norm(target.replace('*', match[1]))}`
     }
   }
