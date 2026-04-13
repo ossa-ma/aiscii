@@ -104,6 +104,10 @@ For a quick embed without a bundler:
 </script>
 ```
 
+## Acknowledgements
+
+aiscii's runtime architecture was inspired by [play.core](https://github.com/ertdfgcvb/play.core) by Andreas Gysin. Check it out!
+
 ## License
 
 [PolyForm Shield 1.0.0](LICENSE) — free to use, modify, and distribute. You may not use it to build a competing product.
