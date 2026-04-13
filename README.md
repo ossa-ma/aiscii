@@ -6,16 +6,7 @@ LLMs are good at writing code. ASCII animation is code. This is cheaper and fast
 
 ## Demos
 
-| | |
-|---|---|
-| [Plasma](https://ossama.is/aiscii/plasma) | Layered sine waves with neon palette |
-| [Ocean](https://ossama.is/aiscii/ocean) | Overhead ocean surface with drifting foam patches |
-| [Moons](https://ossama.is/aiscii/moons) | Three moons orbiting a planet with shadows |
-| [Wormhole](https://ossama.is/aiscii/wormhole) | Tunnel zoom with neon energy streaks |
-| [Rose](https://ossama.is/aiscii/rose-butterflies) | Layered rose petals with butterflies |
-| [Matrix](https://ossama.is/aiscii/matrix) | Falling green rain with centered title |
-| [Unicorn](https://ossama.is/aiscii/unicorn) | Winking unicorn with rainbow mane |
-| [Breathing Rings](https://ossama.is/aiscii/breathing-rings) | Morphing concentric rings, warm palette |
+[View all demos](https://ossama.is/aiscii) — live animations with code/preview toggle.
 
 ## Quickstart
 
