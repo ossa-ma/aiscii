@@ -96,7 +96,7 @@ interface Cell {
 
 ### math
 ```typescript
-import { map, clamp, lerp, osc, oscBipolar, ease, smoothstep, fract, mod, centered, DENSITY } from 'aiscii/modules/math'
+import { map, clamp, lerp, osc, oscBipolar, ease, smoothstep, fract, mod, centered, toPolar, DENSITY } from 'aiscii/modules/math'
 
 map(v, inMin, inMax, outMin, outMax)  // remap a value between ranges
 clamp(v, min, max)
@@ -111,6 +111,9 @@ mod(x, y)                             // always-positive modulo
 // CRITICAL for SDF work — converts Coord to aspect-corrected centered space
 // Origin at center, [-1,1] on shorter axis, circles look circular
 centered(coord, context) → { x, y }
+
+// Convert to polar coordinates — for spirals, radials, kaleidoscopes
+toPolar(x, y) → { angle, radius }    // angle in [-π, π], radius >= 0
 
 DENSITY.simple   // ' .:-=+*#%@'         (10 chars, safe ASCII)
 DENSITY.complex  // 70-char ASCII ramp   (safe ASCII)
@@ -129,6 +132,8 @@ sdf.box(x, y, halfW, halfH)           // axis-aligned box at origin
 sdf.ring(x, y, radius, thickness)     // annulus
 sdf.segment(x, y, ax, ay, bx, by)     // line segment
 sdf.triangle(x, y, r)                 // equilateral triangle
+sdf.polygon(x, y, sides, r)           // regular polygon (5 = pentagon, 6 = hexagon)
+sdf.star(x, y, points, outerR, innerR) // star shape (5, 0.3, 0.15 = classic star)
 
 // Boolean ops
 sdf.union(a, b)                        // min(a, b)
@@ -149,11 +154,13 @@ sdf.outline(d, width?, softness?)      // SDF distance → 0-1 outline value
 
 ### color
 ```typescript
-import { rgb, hsl, hsla, palette, PALETTES, lerpRGB } from 'aiscii/modules/color'
+import { rgb, hsl, hsla, palette, PALETTES, lerpRGB, lerpHSL } from 'aiscii/modules/color'
 
 rgb(r, g, b)             // r,g,b in [0,255] → CSS string
 hsl(h, s, l)             // h [0,360], s,l [0,100] → CSS string
 palette(t, a, b, c, d)   // IQ cosine palette, t in [0,1], each of a,b,c,d is [r,g,b] triple in [0,1]
+lerpRGB(r1,g1,b1, r2,g2,b2, t) // interpolate between two RGB colors
+lerpHSL(h1,s1,l1, h2,s2,l2, t) // interpolate between two HSL colors (shortest hue path)
 
 PALETTES.rainbow(t)      // full spectrum
 PALETTES.cool(t)         // blue-green-purple
@@ -235,6 +242,81 @@ export function pre(context, cursor, buffer) {
   // Then write directly into buffer[x + y * context.cols]
 }
 // No main() needed — pre() owns the whole buffer
+```
+
+### Polar coordinates (spirals, radials, kaleidoscopes)
+```typescript
+import { centered, toPolar, map, DENSITY } from 'aiscii/modules/math'
+
+export function main(coord, context) {
+  const { x, y } = centered(coord, context)
+  const { angle, radius } = toPolar(x, y)
+  const t = context.time * 0.001
+
+  // Spiral: combine angle and radius with time
+  const spiral = angle + radius * 5 - t * 2
+  const v = Math.sin(spiral) * 0.5 + 0.5
+
+  // Kaleidoscope: fold the angle to repeat a pattern N times
+  const N = 6
+  const fold = Math.abs(((angle / Math.PI + 1) * N / 2) % 1 - 0.5) * 2
+
+  const d = DENSITY.simple
+  const i = Math.floor(v * (d.length - 1))
+  return d[Math.max(0, Math.min(d.length - 1, i))] ?? ' '
+}
+```
+
+### Text animation (typewriter, scrolling)
+```typescript
+import * as buf from 'aiscii/modules/buffer'
+
+export function pre(context, cursor, buffer) {
+  for (let i = 0; i < buffer.length; i++) buffer[i] = { char: ' ' }
+
+  const t = context.time * 0.001
+  const msg = 'hello world'
+
+  // Typewriter: reveal one character at a time
+  const revealed = msg.slice(0, Math.floor(t * 4) % (msg.length + 5))
+  const x = Math.floor((context.cols - msg.length) / 2)
+  const y = Math.floor(context.rows / 2)
+  buf.text(revealed, x, y, { color: '#fff' }, buffer, context)
+
+  // Scrolling marquee: move text across the screen
+  const scrollX = ((t * 8) % (context.cols + msg.length)) - msg.length
+  buf.text(msg, Math.floor(scrollX), y + 2, { color: '#0ff' }, buffer, context)
+}
+```
+
+### Scene transitions
+```typescript
+import { smoothstep } from 'aiscii/modules/math'
+import { lerpHSL } from 'aiscii/modules/color'
+
+export function main(coord, context) {
+  const t = context.time * 0.001
+  const sceneDuration = 4  // seconds per scene
+  const fadeTime = 1       // seconds for crossfade
+
+  const scene = Math.floor(t / sceneDuration)
+  const local = (t % sceneDuration)
+  // 0→1 blend: 0 during scene body, ramps to 1 during last fadeTime seconds
+  const blend = smoothstep(sceneDuration - fadeTime, sceneDuration, local)
+
+  // Scene A and Scene B return cells; blend between them
+  const a = sceneA(coord, context)
+  const b = sceneB(coord, context)
+
+  // Alternate: even scenes show A→B, odd show B→A
+  const from = scene % 2 === 0 ? a : b
+  const to = scene % 2 === 0 ? b : a
+
+  return {
+    char: blend < 0.5 ? from.char : to.char,
+    color: lerpHSL(/* from hsl */, /* to hsl */, blend),
+  }
+}
 ```
 
 ### Stateful program with boot()
