@@ -124,7 +124,7 @@ export interface Program<S = void> {
    * Return an object to use as persistent state across frames.
    * Omit if your program is stateless (pure math over coord/context).
    */
-  boot?(context: Context, buffer: Cell[], userData: unknown): S
+  boot?(context: Context, buffer: Cell[], userData: unknown): S | Promise<S>
 
   /**
    * Called once per frame before main().

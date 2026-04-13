@@ -151,12 +151,13 @@ export function run<S = void>(
     // Boot — runs once after fonts are ready
     // ---------------------------------------------------------------------------
 
-    function boot(): void {
+    async function boot(): Promise<void> {
       metrics = calcMetrics(el)
       const context = buildContext()
       if (typeof program.boot === 'function') {
-        // boot() optionally returns initial state; void programs leave it undefined
-        programState = program.boot(context, buffer, userData) as S
+        // boot() optionally returns initial state; supports async (e.g. image loading)
+        const result = program.boot(context, buffer, userData)
+        programState = (result instanceof Promise ? await result : result) as S
       }
       requestAnimationFrame(loop)
     }
