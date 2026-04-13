@@ -59,6 +59,45 @@ export function triangle(x: number, y: number, r: number): number {
   return -Math.sqrt(px * px + py * py) * Math.sign(py)
 }
 
+/**
+ * Signed distance to a regular polygon centered at origin.
+ * @param n  Number of sides (3 = triangle, 5 = pentagon, 6 = hexagon, etc.)
+ * @param r  Circumradius (distance from center to vertex)
+ */
+export function polygon(x: number, y: number, n: number, r: number): number {
+  const an = Math.PI / n
+  const he = r * Math.cos(an) // apothem (center to edge midpoint)
+  // Fold into one sector using angular repetition
+  let a = Math.atan2(y, x)
+  a = ((a % (2 * an)) + 2 * an) % (2 * an) - an
+  const d = Math.sqrt(x * x + y * y)
+  // Distance to the nearest edge
+  return d * Math.cos(a) - he
+}
+
+/**
+ * Signed distance to a star centered at origin.
+ * @param n   Number of points (5 = classic star, 6 = Star of David, etc.)
+ * @param ro  Outer radius (tip of points)
+ * @param ri  Inner radius (valley between points)
+ */
+export function star(x: number, y: number, n: number, ro: number, ri: number): number {
+  const an = Math.PI / n
+  // Fold into one sector
+  let a = Math.atan2(y, x)
+  a = ((a % (2 * an)) + 2 * an) % (2 * an) - an
+  const d = Math.sqrt(x * x + y * y)
+  const sx = d * Math.cos(a), sy = d * Math.abs(Math.sin(a))
+  // Edge from inner valley (ri, 0) rotated by an, to outer tip (ro, 0)
+  const vx = ri * Math.cos(an), vy = ri * Math.sin(an)
+  const ex = ro - vx, ey = -vy
+  const t = Math.max(0, Math.min(1, ((sx - vx) * ex + (sy - vy) * ey) / (ex * ex + ey * ey)))
+  const px = sx - vx - ex * t, py = sy - vy - ey * t
+  const dist = Math.sqrt(px * px + py * py)
+  const sign = sx * ey - sy * ex > 0 ? 1 : -1
+  return dist * sign
+}
+
 // ---------------------------------------------------------------------------
 // Boolean operations
 // ---------------------------------------------------------------------------

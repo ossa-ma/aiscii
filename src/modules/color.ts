@@ -108,3 +108,23 @@ export function lerpRGB(
     b1 + (b2 - b1) * t
   )
 }
+
+/**
+ * Linearly interpolate between two HSL colours.
+ * h in [0, 360], s and l in [0, 100]. Takes the shortest hue path.
+ */
+export function lerpHSL(
+  h1: number, s1: number, l1: number,
+  h2: number, s2: number, l2: number,
+  t: number
+): string {
+  // Shortest-path hue interpolation
+  let dh = h2 - h1
+  if (dh > 180) dh -= 360
+  if (dh < -180) dh += 360
+  return hsl(
+    ((h1 + dh * t) % 360 + 360) % 360,
+    s1 + (s2 - s1) * t,
+    l1 + (l2 - l1) * t,
+  )
+}

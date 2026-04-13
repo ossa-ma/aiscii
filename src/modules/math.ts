@@ -119,6 +119,27 @@ export function centered(coord: Coord, context: Context): { x: number; y: number
 }
 
 // ---------------------------------------------------------------------------
+// Polar coordinates
+// ---------------------------------------------------------------------------
+
+/**
+ * Convert centered (x, y) coordinates to polar (angle, radius).
+ * angle is in radians, range [-π, π]. radius is always >= 0.
+ * Pair with centered() for aspect-corrected polar patterns.
+ *
+ * @example
+ * const { x, y } = centered(coord, context)
+ * const { angle, radius } = toPolar(x, y)
+ * // spiral: angle + radius * 5 + time
+ */
+export function toPolar(x: number, y: number): { angle: number; radius: number } {
+  return {
+    angle: Math.atan2(y, x),
+    radius: Math.sqrt(x * x + y * y),
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Character density palettes
 // ---------------------------------------------------------------------------
 
