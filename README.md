@@ -104,6 +104,14 @@ For a quick embed without a bundler:
 </script>
 ```
 
+## Limitations
+
+aiscii works best with abstract, procedural animation — things that can be expressed as math: wave patterns, noise fields, geometric shapes, particle effects. It excels at anything that loops, flows, or pulses.
+
+It does not work well for representational animation — recognizable figures, characters, or choreographed sequences. A "dancing skeleton" or "galloping horse" requires frame-by-frame character art that current models can't reliably produce blind. This is a known limitation of both the per-cell shader model and LLM-generated ASCII art.
+
+Image/video-to-ASCII conversion (like [aalib](https://aa-project.sourceforge.net/)) is a potential future direction.
+
 ## Acknowledgements
 
 aiscii's runtime architecture was inspired by [play.core](https://github.com/ertdfgcvb/play.core) by Andreas Gysin. Check it out!
