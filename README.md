@@ -66,9 +66,9 @@ export function main(coord, context) {
 
 | Module | What it does |
 |--------|-------------|
-| `aiscii/modules/math` | map, clamp, lerp, oscillators, easing, `centered()` for aspect-corrected coords, `DENSITY` character ramps |
-| `aiscii/modules/sdf` | Signed distance functions — circle, box, ring, triangle, boolean ops, smooth blending, domain repetition |
-| `aiscii/modules/color` | `rgb`, `hsl`, IQ cosine palettes, preset palettes (rainbow, cool, warm, neon, mono) |
+| `aiscii/modules/math` | map, clamp, lerp, oscillators, easing, `centered()` for aspect-corrected coords, `toPolar()` for polar coordinates, `DENSITY` character ramps |
+| `aiscii/modules/sdf` | Signed distance functions — circle, box, ring, triangle, polygon, star, boolean ops, smooth blending, domain repetition |
+| `aiscii/modules/color` | `rgb`, `hsl`, `lerpHSL`, IQ cosine palettes, preset palettes (rainbow, cool, warm, neon, mono) |
 | `aiscii/modules/noise` | 2D/3D simplex noise, fractional Brownian motion |
 | `aiscii/modules/vec2` | 2D vector math |
 | `aiscii/modules/buffer` | Safe read/write operations on the cell buffer |
