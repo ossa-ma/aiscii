@@ -77,25 +77,48 @@ export function polygon(x: number, y: number, n: number, r: number): number {
 
 /**
  * Signed distance to a star centered at origin.
+ * Based on Inigo Quilez's sdStar — angular folding + edge distance.
  * @param n   Number of points (5 = classic star, 6 = Star of David, etc.)
  * @param ro  Outer radius (tip of points)
  * @param ri  Inner radius (valley between points)
  */
-export function star(x: number, y: number, n: number, ro: number, ri: number): number {
+export function star(px: number, py: number, n: number, ro: number, ri: number): number {
   const an = Math.PI / n
-  // Fold into one sector
-  let a = Math.atan2(y, x)
-  a = ((a % (2 * an)) + 2 * an) % (2 * an) - an
-  const d = Math.sqrt(x * x + y * y)
-  const sx = d * Math.cos(a), sy = d * Math.abs(Math.sin(a))
-  // Edge from inner valley (ri, 0) rotated by an, to outer tip (ro, 0)
-  const vx = ri * Math.cos(an), vy = ri * Math.sin(an)
-  const ex = ro - vx, ey = -vy
-  const t = Math.max(0, Math.min(1, ((sx - vx) * ex + (sy - vy) * ey) / (ex * ex + ey * ey)))
-  const px = sx - vx - ex * t, py = sy - vy - ey * t
-  const dist = Math.sqrt(px * px + py * py)
-  const sign = sx * ey - sy * ex > 0 ? 1 : -1
-  return dist * sign
+  // Precompute the edge normal for the star edge (outer tip to inner valley)
+  const ecs = Math.cos(an), esn = Math.sin(an)
+  // Inner valley vertex in sector-local space
+  const kvx = ri * ecs, kvy = ri * esn
+
+  // Fold point into first sector (mirror to positive half)
+  let a = Math.atan2(py, px)
+  a = ((a % (2 * an)) + 2 * an) % (2 * an)
+  const len = Math.sqrt(px * px + py * py)
+  let sx = len * Math.cos(a)
+  let sy = len * Math.sin(a)
+
+  // Mirror across the sector bisector so we only handle one edge
+  if (sy > sy * ecs - sx * esn) {
+    // nop — already on the correct side
+  }
+  // Reflect across the half-angle line if needed
+  if (a > an) {
+    const tmp = sx * ecs + sy * esn
+    sy = -sx * esn + sy * ecs
+    sx = tmp
+    sy = Math.abs(sy)
+  }
+
+  // Closest point on the edge from (ro, 0) to (kvx, kvy)
+  const edx = kvx - ro, edy = kvy
+  const t = Math.max(0, Math.min(1, ((sx - ro) * edx + sy * edy) / (edx * edx + edy * edy)))
+  const cpx = ro + edx * t, cpy = edy * t
+  const dx = sx - cpx, dy = sy - cpy
+  const dist = Math.sqrt(dx * dx + dy * dy)
+
+  // Sign: negative inside, positive outside
+  // Point is inside if it's on the inner side of the edge
+  const cross = (sx - ro) * edy - sy * edx
+  return cross < 0 ? -dist : dist
 }
 
 // ---------------------------------------------------------------------------
