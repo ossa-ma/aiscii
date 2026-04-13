@@ -355,12 +355,22 @@ run(program, {
 
 Then tell the user to run `bun dev` and open the URL, or refresh if the server is already running. Include a brief summary of the animation as a few bullet points describing the key visual techniques used.
 
+## Visual quality
+
+The characters ARE the art. Never use spaces with colored backgrounds as the primary visual — that produces ugly colored blocks. Instead:
+
+- ALWAYS use `DENSITY.complex` (70-char ramp) as the default character set. Use the full range of characters to create texture, depth, and detail. Characters like `.`, `:`, `*`, `#`, `@`, `$` at different densities create rich visual fields.
+- `backgroundColor` should be a single flat dark color for the whole animation. The character `color` and character selection do all the visual work.
+- Build visual complexity through layered noise (`fbm`, `noise3` at multiple scales), domain warping (use noise to distort coordinates before sampling more noise), and color gradients via palettes or `hsl()`.
+- Aim for the quality level of breathing-rings.ts and ocean.ts — multiple noise layers, organic movement, rich character texture, thoughtful color.
+- Keep programs under 60 lines in `main()`. Complexity comes from layering simple techniques, not from sprawling code. If you're over 80 lines, simplify.
+
 ## Rules
 
 - Do NOT start, restart, or stop the dev server yourself. Tell the user the command to run.
 - Do NOT curl, fetch, or open the dev server URL to verify output.
 - ALWAYS update `main.ts` to import the new program after creating it.
-- Use `centered()` before any SDF math — never do SDF in raw u/v space
+- Use `centered()` before any SDF math — never do SDF in raw u/v space.
 - `DENSITY` strings are ordered dark→light. Index 0 = darkest, last index = brightest.
 - `time` is milliseconds. Multiply by small numbers (0.0005–0.002) for readable speeds.
 - For smooth animation without flicker, prefer `pre()` for clearing + `main()` for per-cell math. Only use `pre()` alone (writing buffer directly) when doing z-buffer or particle rendering.
