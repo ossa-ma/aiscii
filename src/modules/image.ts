@@ -43,14 +43,20 @@ export async function load(
     density?: string
     /** If true, use only backgroundColor (char is always space). Default: true. */
     colorOnly?: boolean
+    /** Padding as fraction of grid (0.08 = 8% margin on each side). Default: 0. */
+    padding?: number
+    /** Background color for padded area. Default: transparent black. */
+    padColor?: { r: number; g: number; b: number }
   } = {},
 ): Promise<SampledImage> {
   const { cols, rows } = context
   const colorOnly = options.colorOnly ?? true
   const density = options.density ?? ' '
+  const padding = options.padding ?? 0
+  const padColor = options.padColor ?? { r: 0, g: 0, b: 0 }
 
   const img = await loadImage(src)
-  const { data, width, height } = rasterize(img, cols, rows)
+  const { data, width, height } = rasterize(img, cols, rows, padding, padColor)
 
   const cells: Cell[] = new Array(cols * rows)
   const pixels: RGBA[] = new Array(cols * rows)
@@ -158,9 +164,14 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   })
 }
 
-/** Draw image to an offscreen canvas at exactly cols x rows resolution, return pixel data. */
-function rasterize(img: HTMLImageElement, cols: number, rows: number) {
-  // Use a canvas that matches the image aspect ratio but is large enough for good sampling
+/** Draw image to an offscreen canvas, with optional padding margin. */
+function rasterize(
+  img: HTMLImageElement,
+  cols: number,
+  rows: number,
+  padding: number,
+  padColor: { r: number; g: number; b: number },
+) {
   const scale = Math.max(1, Math.ceil(Math.max(img.width / cols, img.height / rows)))
   const w = cols * scale
   const h = rows * scale
@@ -170,22 +181,33 @@ function rasterize(img: HTMLImageElement, cols: number, rows: number) {
   canvas.height = h
   const ctx = canvas.getContext('2d')!
 
-  // Fill with transparent, then draw image covering the full canvas
-  ctx.clearRect(0, 0, w, h)
+  // Fill with pad color
+  ctx.fillStyle = `rgb(${padColor.r},${padColor.g},${padColor.b})`
+  ctx.fillRect(0, 0, w, h)
 
-  // Maintain aspect ratio — cover the canvas (crop overflow)
+  // Inner region after padding
+  const px = Math.floor(w * padding)
+  const py = Math.floor(h * padding)
+  const iw = w - 2 * px
+  const ih = h - 2 * py
+
+  // Maintain aspect ratio — contain within inner region
   const imgAspect = img.width / img.height
-  const canvasAspect = w / h
-  let sx = 0, sy = 0, sw = img.width, sh = img.height
-  if (imgAspect > canvasAspect) {
-    sw = img.height * canvasAspect
-    sx = (img.width - sw) / 2
+  const innerAspect = iw / ih
+  let dw: number, dh: number, dx: number, dy: number
+  if (imgAspect > innerAspect) {
+    dw = iw
+    dh = iw / imgAspect
+    dx = px
+    dy = py + (ih - dh) / 2
   } else {
-    sh = img.width / canvasAspect
-    sy = (img.height - sh) / 2
+    dh = ih
+    dw = ih * imgAspect
+    dx = px + (iw - dw) / 2
+    dy = py
   }
 
-  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, w, h)
+  ctx.drawImage(img, 0, 0, img.width, img.height, dx, dy, dw, dh)
 
   return { data: ctx.getImageData(0, 0, w, h).data, width: w, height: h }
 }
