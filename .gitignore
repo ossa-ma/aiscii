@@ -2,6 +2,7 @@ node_modules/
 dist/
 .DS_Store
 todo.txt
+.claude/commands/aiscii.md
 
 # Programs — ignore all, then whitelist specific ones
 programs/*
