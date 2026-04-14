@@ -359,10 +359,10 @@ Then tell the user to run `bun dev` and open the URL, or refresh if the server i
 
 The characters ARE the art. Never use spaces with colored backgrounds as the primary visual — that produces ugly colored blocks. Instead:
 
-- ALWAYS use `DENSITY.complex` (70-char ramp) as the default character set. Use the full range of characters to create texture, depth, and detail. Characters like `.`, `:`, `*`, `#`, `@`, `$` at different densities create rich visual fields.
+- ALWAYS use `DENSITY.complex` (70-char ramp) as the default character set. Use the full range of characters to create texture, depth, and detail.
 - `backgroundColor` should be a single flat dark color for the whole animation. The character `color` and character selection do all the visual work.
-- Build visual complexity through layered noise (`fbm`, `noise3` at multiple scales), domain warping (use noise to distort coordinates before sampling more noise), and color gradients via palettes or `hsl()`.
-- Aim for the quality level of breathing-rings.ts and ocean.ts — multiple noise layers, organic movement, rich character texture, thoughtful color.
+- **Every program needs a macro structure** — a geometric backbone the viewer's eye can follow. Sine interference patterns, SDF shapes, concentric rings, wave crests, radial lines, grid repetitions. Noise and fbm are detail layers, never the primary structure. Domain warping should distort a readable shape, not replace it. "fbm warped by fbm sampled through fbm" produces formless mush. Study how breathing-rings.ts uses concentric rings as its backbone with noise only for edge wobble, or how waves.ts uses three sine wave trains with fbm only for surface turbulence.
+- Color should vary with the field value — use `lerp` between two hues or a `PALETTES` function so crests/peaks look different from troughs/valleys. A single flat hue with only brightness variation looks dead.
 - Keep programs under 60 lines in `main()`. Complexity comes from layering simple techniques, not from sprawling code. If you're over 80 lines, simplify.
 
 ## Rules
