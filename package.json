@@ -16,7 +16,12 @@
   "files": [
     "src/",
     "dist/",
-    "programs/",
+    "programs/breathing-rings.ts",
+    "programs/plasma.ts",
+    "programs/waves.ts",
+    "programs/donut.ts",
+    "programs/donuts.ts",
+    "programs/aurora.ts",
     "cli.ts",
     "skill.md",
     "server.ts",
