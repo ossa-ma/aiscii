@@ -1,2 +1,13 @@
 node_modules/
 dist/
+.DS_Store
+todo.txt
+
+# Programs — ignore all, then whitelist specific ones
+programs/*
+!programs/breathing-rings.ts
+!programs/plasma.ts
+!programs/waves.ts
+!programs/donut.ts
+!programs/donuts.ts
+!programs/aurora.ts
