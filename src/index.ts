@@ -18,7 +18,5 @@ export * as color  from './modules/color'
 export * as sdf    from './modules/sdf'
 export * as buffer from './modules/buffer'
 export * as noise  from './modules/noise'
-export * as image  from './modules/image'
-
 // Density palettes surfaced at the top level for convenience
 export { DENSITY } from './modules/math'
