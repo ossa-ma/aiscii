@@ -10,7 +10,7 @@ const cmd = process.argv[2]
 if (cmd === 'init') {
   init()
 } else if (cmd === 'convert') {
-  convert()
+  await convert()
 } else {
   console.log('Usage: aiscii <command>\n\nCommands:\n  init      Set up an aiscii project\n  convert   Convert image/GIF/video to ASCII art')
   process.exit(1)
