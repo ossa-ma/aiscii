@@ -74,11 +74,14 @@ async function convert() {
   let noBg = false
   let bgColor: string | undefined
   let color = 'white'
+  let shaderPath: string | undefined
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i]
     if (arg === '--style' && args[i + 1]) {
       style = args[++i]
+    } else if (arg === '--shader' && args[i + 1]) {
+      shaderPath = args[++i]
     } else if (arg === '--cols' && args[i + 1]) {
       cols = parseInt(args[++i], 10)
     } else if (arg === '--output' && args[i + 1]) {
@@ -149,13 +152,32 @@ async function convert() {
   console.error(`  Grid: ${cellFrames[0].cols}x${cellFrames[0].rows}`)
 
   // Shade
-  let shader = getShader(style)
-  if (!shader) {
-    if (style === 'silhouette') {
-      shader = silhouetteShader(color)
-    } else {
-      console.error(`Unknown style: ${style}. Available: default, thermal, night-vision, blueprint, xray, silhouette`)
+  let shader
+  if (shaderPath) {
+    // Load custom shader from file
+    const { resolve } = await import('path')
+    const absPath = resolve(process.cwd(), shaderPath)
+    if (!fileExists(absPath)) {
+      console.error(`Shader file not found: ${shaderPath}`)
       process.exit(1)
+    }
+    const mod = await import(absPath)
+    shader = mod.shader ?? mod.default
+    if (typeof shader !== 'function') {
+      console.error(`Shader file must export a 'shader' or 'default' function: (cell: CellData) => { char, color }`)
+      process.exit(1)
+    }
+    console.error(`  Using custom shader: ${shaderPath}`)
+  } else {
+    shader = getShader(style)
+    if (!shader) {
+      if (style === 'silhouette') {
+        shader = silhouetteShader(color)
+      } else {
+        console.error(`Unknown style: ${style}. Available: default, thermal, night-vision, blueprint, xray, silhouette`)
+        console.error(`Or use --shader ./path.ts to load a custom shader function.`)
+        process.exit(1)
+      }
     }
   }
 

@@ -339,6 +339,100 @@ const program: Program<State> = {
 }
 ```
 
+## Convert pipeline (image/GIF/video → ASCII)
+
+aiscii includes a CLI pipeline for converting source images into styled ASCII art.
+
+### Basic usage
+
+```bash
+bun cli.ts convert <source> [flags]
+```
+
+Flags:
+- `--style <name>` — preset shader: `default`, `thermal`, `night-vision`, `blueprint`, `xray`, `silhouette`
+- `--shader <path>` — custom shader file (see below)
+- `--cols <n>` — output width in characters (default: terminal width)
+- `--output <format>` — `terminal` (default), `json`, `html`
+- `--no-bg` — remove background (auto-detect color). Default ON for GIFs.
+- `--bg-color <hex>` — specific background color to remove, e.g. `"#0000ff"`
+- `--color <css>` — foreground color for silhouette style
+
+### Custom shaders
+
+When the user requests a style that doesn't match a preset, write a custom shader file and pass it via `--shader`.
+
+A shader is a TypeScript file that exports a function matching this contract:
+
+```typescript
+import type { CellData, StyledCell } from 'aiscii/convert'
+
+/**
+ * CellData fields available:
+ *   brightness: number      — 0-1 luminance from source
+ *   coverage: number        — 0-1 foreground pixel ratio
+ *   sourceColor: [r, g, b]  — average RGB [0-255] of source pixels
+ *   x: number               — normalized grid position 0-1
+ *   y: number               — normalized grid position 0-1
+ */
+export function shader(cell: CellData): StyledCell {
+  return {
+    char: /* character based on brightness/coverage */,
+    color: /* CSS color string */,
+  }
+}
+```
+
+### Writing shaders from natural language
+
+When a user describes a visual style in natural language (e.g. "underwater bioluminescence", "old CRT monitor", "infrared night vision"), translate it into a shader function:
+
+1. Create the shader file at `./shaders/<name>.ts`
+2. Map the style description to color choices, character density, and visual effects
+3. Use `cell.brightness` for intensity mapping, `cell.sourceColor` for color derivation, `cell.coverage` for edge/mask decisions
+4. Run: `bun cli.ts convert <source> --shader ./shaders/<name>.ts --cols <n> --output html > out.html && open out.html`
+5. Iterate based on user feedback — edit the shader, rerun
+
+### Shader examples
+
+**Underwater bioluminescence:**
+```typescript
+export function shader(cell) {
+  if (cell.brightness < 0.02) return { char: ' ', color: 'transparent' }
+  const b = cell.brightness
+  const char = b > 0.7 ? '*' : b > 0.4 ? '~' : b > 0.2 ? '.' : '·'
+  const hue = 180 + b * 60  // cyan → blue
+  const sat = 70 + b * 30
+  const lit = 10 + b * 50
+  return { char, color: `hsl(${hue},${sat}%,${lit}%)` }
+}
+```
+
+**Old CRT monitor:**
+```typescript
+export function shader(cell) {
+  if (cell.brightness < 0.02) return { char: ' ', color: 'transparent' }
+  const b = cell.brightness
+  const scanline = Math.sin(cell.y * 80) * 0.15
+  const adjusted = Math.max(0, b + scanline)
+  const g = Math.round(adjusted * 255)
+  const char = adjusted > 0.6 ? '#' : adjusted > 0.3 ? '+' : adjusted > 0.1 ? '.' : '·'
+  return { char, color: `rgb(${Math.round(g*0.2)},${g},${Math.round(g*0.3)})` }
+}
+```
+
+### Workflow
+
+The typical iteration loop:
+1. User describes a style
+2. Write the shader file
+3. Run the convert command with `--output html`, open the result
+4. User gives feedback ("more green", "denser characters", "add scanlines")
+5. Edit shader, rerun
+6. Repeat until satisfied
+
+Always output to HTML for visual review during iteration — terminal ANSI rendering is harder to evaluate.
+
 ## Output file location
 
 Save new programs to `./programs/<name>.ts` relative to the project root.
