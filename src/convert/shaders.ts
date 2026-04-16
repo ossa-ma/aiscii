@@ -42,13 +42,18 @@ export const defaultShader: ShaderFn = (cell) => {
 // Silhouette: shape in one color
 // ---------------------------------------------------------------------------
 
+const SILHOUETTE_RAMP = ' ·.:+*'
+const SILHOUETTE_LEN = SILHOUETTE_RAMP.length
+
 export function silhouetteShader(color = 'white'): ShaderFn {
   return (cell) => {
     if (cell.coverage < 0.15) {
       return { char: ' ', color: 'transparent' }
     }
+    // Use coverage for character selection — edges get sparse dots, body gets dense marks
+    const idx = Math.min(SILHOUETTE_LEN - 1, Math.floor(cell.coverage * (SILHOUETTE_LEN - 1)))
     return {
-      char: charFromBrightness(cell.brightness),
+      char: SILHOUETTE_RAMP[idx] || '*',
       color,
     }
   }

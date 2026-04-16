@@ -8,11 +8,27 @@
 
 import type { Frame } from './types'
 
+/** Squared color distance between two RGB values */
+function colorDist2(
+  r1: number, g1: number, b1: number,
+  r2: number, g2: number, b2: number
+): number {
+  const dr = r1 - r2
+  const dg = g1 - g2
+  const db = b1 - b2
+  return dr * dr + dg * dg + db * db
+}
+
 /**
- * Find the bounding box of non-transparent pixels in a frame.
- * Returns { minX, minY, maxX, maxY } or null if the frame is empty.
+ * Find the bounding box of foreground pixels in a frame.
+ * A pixel is foreground if it has alpha > 0 AND (if bgColor provided)
+ * is not within threshold distance of the background color.
  */
-function frameBounds(frame: Frame): { minX: number; minY: number; maxX: number; maxY: number } | null {
+function frameBounds(
+  frame: Frame,
+  bgColor?: [number, number, number],
+  bgThreshold2 = 900  // 30^2
+): { minX: number; minY: number; maxX: number; maxY: number } | null {
   const { data, width, height } = frame
   let minX = width
   let minY = height
@@ -21,13 +37,20 @@ function frameBounds(frame: Frame): { minX: number; minY: number; maxX: number; 
 
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
-      const a = data[(y * width + x) * 4 + 3]
-      if (a > 0) {
-        if (x < minX) minX = x
-        if (x > maxX) maxX = x
-        if (y < minY) minY = y
-        if (y > maxY) maxY = y
+      const i = (y * width + x) * 4
+      const a = data[i + 3]
+      if (a === 0) continue
+
+      if (bgColor) {
+        if (colorDist2(data[i], data[i + 1], data[i + 2], bgColor[0], bgColor[1], bgColor[2]) < bgThreshold2) {
+          continue
+        }
       }
+
+      if (x < minX) minX = x
+      if (x > maxX) maxX = x
+      if (y < minY) minY = y
+      if (y > maxY) maxY = y
     }
   }
 
@@ -43,8 +66,16 @@ function frameBounds(frame: Frame): { minX: number; minY: number; maxX: number; 
  * 3. Crops/recenters each frame to the union dimensions
  *
  * For single-frame inputs, returns the input unchanged.
+ *
+ * @param bgColor — background color for content detection. Without this,
+ *   only alpha=0 pixels are treated as empty, which fails for GIFs with
+ *   solid backgrounds (every pixel has a=255).
  */
-export function normalizeFrames(frames: Frame[], padding = 2): Frame[] {
+export function normalizeFrames(
+  frames: Frame[],
+  padding = 2,
+  bgColor?: [number, number, number]
+): Frame[] {
   if (frames.length <= 1) return frames
 
   // Compute union bounding box across all frames
@@ -54,7 +85,7 @@ export function normalizeFrames(frames: Frame[], padding = 2): Frame[] {
   let unionMaxY = -Infinity
 
   for (const frame of frames) {
-    const bounds = frameBounds(frame)
+    const bounds = frameBounds(frame, bgColor)
     if (!bounds) continue
     if (bounds.minX < unionMinX) unionMinX = bounds.minX
     if (bounds.minY < unionMinY) unionMinY = bounds.minY

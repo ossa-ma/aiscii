@@ -88,6 +88,12 @@ async function decodeGif(path: string): Promise<Frame[]> {
   for (const raw of rawFrames) {
     const { dims, patch, delay, disposalType } = raw
 
+    // Snapshot canvas before patch for disposal type 3
+    let previousCanvas: Uint8Array | undefined
+    if (disposalType === 3) {
+      previousCanvas = new Uint8Array(canvas)
+    }
+
     // Apply patch to canvas
     for (let y = 0; y < dims.height; y++) {
       for (let x = 0; x < dims.width; x++) {
@@ -124,8 +130,10 @@ async function decodeGif(path: string): Promise<Frame[]> {
           canvas[di + 3] = 0
         }
       }
+    } else if (disposalType === 3 && previousCanvas) {
+      // Restore to previous — revert canvas to state before this patch
+      canvas.set(previousCanvas)
     }
-    // disposalType 3 (restore to previous) is rare and complex — skip for now
   }
 
   return frames

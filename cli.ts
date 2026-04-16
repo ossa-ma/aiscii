@@ -69,12 +69,13 @@ async function convert() {
   // Parse arguments
   let source = ''
   let style = 'default'
-  let cols = process.stdout.columns || 80
+  let colsOverride: number | undefined
   let output = 'terminal'
   let noBg = false
   let bgColor: string | undefined
   let color = 'white'
   let shaderPath: string | undefined
+  let charAspect: number | undefined
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i]
@@ -83,7 +84,7 @@ async function convert() {
     } else if (arg === '--shader' && args[i + 1]) {
       shaderPath = args[++i]
     } else if (arg === '--cols' && args[i + 1]) {
-      cols = parseInt(args[++i], 10)
+      colsOverride = parseInt(args[++i], 10)
     } else if (arg === '--output' && args[i + 1]) {
       output = args[++i]
     } else if (arg === '--no-bg') {
@@ -93,10 +94,15 @@ async function convert() {
       noBg = true
     } else if (arg === '--color' && args[i + 1]) {
       color = args[++i]
+    } else if (arg === '--char-aspect' && args[i + 1]) {
+      charAspect = parseFloat(args[++i])
     } else if (!arg.startsWith('-')) {
       source = arg
     }
   }
+
+  // Default cols: terminal width for terminal output, 80 for file outputs
+  const cols = colsOverride ?? (output === 'terminal' ? (process.stdout.columns || 80) : 80)
 
   if (!source) {
     console.log('Usage: aiscii convert <source> [--style <name>] [--cols <n>] [--output terminal|json|html] [--no-bg] [--color <css>]')
@@ -109,7 +115,7 @@ async function convert() {
     process.exit(1)
   }
 
-  const { decode, normalizeFrames, rasterizeFrames, detectBgColor, applyShader, getShader, silhouetteShader, renderAnsi, playAnsi, toJSON, toHTML } = await import('./src/convert/index')
+  const { decode, normalizeFrames, rasterizeFrames, detectBgColor, applyShader, getShader, silhouetteShader, renderAnsi, playAnsi, toJSON, toHTML, toProgram } = await import('./src/convert/index')
 
   // Auto-detect: enable bg removal for GIFs by default
   const ext = source.split('.').pop()?.toLowerCase()
@@ -122,15 +128,11 @@ async function convert() {
   const frames = await decode(source)
   console.error(`  ${frames.length} frame(s), ${frames[0].width}x${frames[0].height}`)
 
-  // Normalize (for animations)
-  const normalized = normalizeFrames(frames)
-
-  // Background removal
+  // Background detection (must happen before normalization so bounds are content-aware)
+  let parsedBgColor: [number, number, number] | undefined
   let bgRemoval = undefined
   if (noBg) {
-    let parsedBgColor: [number, number, number] | undefined
     if (bgColor) {
-      // Parse hex color
       const hex = bgColor.replace('#', '')
       parsedBgColor = [
         parseInt(hex.substring(0, 2), 16),
@@ -138,17 +140,19 @@ async function convert() {
         parseInt(hex.substring(4, 6), 16),
       ]
     } else {
-      // Auto-detect from first frame
-      parsedBgColor = detectBgColor(normalized[0])
+      parsedBgColor = detectBgColor(frames[0])
       console.error(`  Auto-detected bg: rgb(${parsedBgColor.join(',')})`)
     }
     bgRemoval = { enabled: true, color: parsedBgColor }
   }
 
+  // Normalize (crop to content bounds, consistent dimensions across frames)
+  const normalized = normalizeFrames(frames, 2, parsedBgColor)
+
   // Rasterize
-  const mode = (style === 'silhouette') ? 'silhouette' as const : noBg ? 'coverage' as const : 'brightness' as const
+  const mode = (style === 'silhouette' || noBg) ? 'coverage' as const : 'brightness' as const
   console.error(`  Rasterizing ${cols} cols, mode: ${mode}`)
-  const cellFrames = rasterizeFrames(normalized, { cols, mode }, bgRemoval)
+  const cellFrames = rasterizeFrames(normalized, { cols, mode, ...(charAspect ? { charAspect } : {}) }, bgRemoval)
   console.error(`  Grid: ${cellFrames[0].cols}x${cellFrames[0].rows}`)
 
   // Shade
@@ -187,7 +191,10 @@ async function convert() {
   if (output === 'json') {
     process.stdout.write(toJSON(cellFrames))
   } else if (output === 'html') {
-    process.stdout.write(toHTML(styledFrames[0]))
+    process.stdout.write(toHTML(styledFrames))
+  } else if (output === 'program') {
+    const name = basename(source).replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9]/g, '_') + 'Program'
+    process.stdout.write(toProgram(styledFrames, { name }))
   } else {
     // Terminal
     if (styledFrames.length === 1) {
