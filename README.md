@@ -1,6 +1,6 @@
 # aiscii
 
-A browser-based ASCII animation runtime. Programs are per-cell shaders written in TypeScript — each cell on screen gets a character, color, and background color every frame. Ships with a Claude Code skill that generates programs from natural language descriptions.
+A browser-based ASCII animation runtime. Programs are per-cell shaders written in TypeScript — each cell on screen gets a character, color, and background color every frame. Ships with a Claude Code plugin with two skills: generate procedural animations from natural language, or convert any image, GIF, or video into an ASCII program.
 
 LLMs are good at writing code. ASCII animation is code. This is cheaper and faster than generating images or video.
 
@@ -18,15 +18,21 @@ bun dev
 
 This scaffolds a working project with a demo program and dev server. Open `http://localhost:3000` to see it running.
 
-## Generate with AI
+## Claude Code plugin
 
-aiscii ships with a Claude Code skill. After `bunx aiscii init`, run:
+aiscii ships as a Claude Code plugin with two skills. After `bunx aiscii init`:
 
+**Generate procedural animations:**
 ```
-/aiscii a tunnel zoom effect like flying through a wormhole, neon palette
+/aiscii:generate a tunnel zoom effect like flying through a wormhole, neon palette
 ```
-
 The skill generates a program file, updates `main.ts`, and tells you to refresh. Every program in the demos table above was generated this way.
+
+**Convert images, GIFs, or video to ASCII:**
+```
+/aiscii:convert bird.gif — make it white on black, use as a sprite
+```
+Claude analyzes the source, picks the right flags (background removal, cols, style), runs the CLI, previews the result, and iterates until it looks good. Produces a ready-to-use `Program<State>` file.
 
 ## How it works
 
@@ -108,7 +114,7 @@ For a quick embed without a bundler:
 
 aiscii works best with abstract, procedural animation — things that can be expressed as math: wave patterns, noise fields, geometric shapes, particle effects.
 
-Representational animation (recognizable figures, choreographed sequences) is not yet supported.
+For representational animation (recognizable figures, choreographed sequences), use `/aiscii:convert` with a GIF or video source rather than trying to generate it procedurally.
 
 ## Acknowledgements
 
