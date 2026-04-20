@@ -4,6 +4,14 @@ description: Generate a procedural ASCII animation program. Use when the user wa
 
 Generate an aiscii animation program based on the user's description.
 
+## Prerequisites
+
+Before doing anything else, verify the environment:
+- `package.json` exists in the current directory
+- `node_modules/aiscii/` exists
+
+If either is missing, stop and tell the user: "Your aiscii project isn't set up yet. Run `/aiscii:setup` first."
+
 ## What is aiscii
 
 A browser-based ASCII animation runtime. Programs are TypeScript modules that export lifecycle functions. The runtime calls them every frame and renders the result into a DOM element.

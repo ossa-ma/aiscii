@@ -4,6 +4,14 @@ description: Convert an image, GIF, or video file into an ASCII art animation pr
 
 Convert a source image, GIF, or video into an ASCII art program using the aiscii CLI.
 
+## Prerequisites
+
+Before doing anything else, verify the environment:
+- `package.json` exists in the current directory
+- `node_modules/aiscii/` exists
+
+If either is missing, stop and tell the user: "Your aiscii project isn't set up yet. Run `/aiscii:setup` first."
+
 You are the intelligence layer. The CLI is deterministic — it executes exactly what flags it receives. Your job is to analyze the source, make the decisions a human art director would make, pick the right flags, and iterate until the output looks good.
 
 ## CLI invocation
