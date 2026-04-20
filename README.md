@@ -18,6 +18,11 @@ bun dev
 
 This scaffolds a working project with a demo program and dev server. Open `http://localhost:3000` to see it running.
 
+To activate the Claude Code plugin:
+```bash
+claude --plugin-dir ./node_modules/aiscii
+```
+
 ## Claude Code plugin
 
 aiscii ships as a Claude Code plugin with two skills. After `bunx aiscii init`:
@@ -114,7 +119,7 @@ For a quick embed without a bundler:
 
 aiscii works best with abstract, procedural animation — things that can be expressed as math: wave patterns, noise fields, geometric shapes, particle effects.
 
-For representational animation (recognizable figures, choreographed sequences), use `/aiscii:convert` with a GIF or video source rather than trying to generate it procedurally.
+For representational animation (recognizable figures, choreographed sequences), use `/aiscii:convert` with a GIF or video source rather than trying to generate it procedurally. Activate the plugin first with `claude --plugin-dir ./node_modules/aiscii`.
 
 ## Acknowledgements
 
