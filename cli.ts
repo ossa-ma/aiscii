@@ -20,14 +20,12 @@ function init() {
   console.log('Setting up aiscii project...\n')
 
   mkdirSync(join(CWD, 'programs'), { recursive: true })
-  mkdirSync(join(CWD, '.claude/commands'), { recursive: true })
 
   const files: [string, string][] = [
     ['templates/index.html',  'index.html'],
     ['templates/main.ts',     'main.ts'],
     ['templates/plasma.ts',   'programs/plasma.ts'],
     ['server.ts',             'server.ts'],
-    ['skill.md',              '.claude/commands/aiscii.md'],
   ]
 
   for (const [src, dest] of files) {
@@ -61,6 +59,9 @@ function init() {
   }
 
   console.log('\nReady. Run `bun dev` to start.')
+  console.log('\nClaude Code plugin: activate with')
+  console.log('  claude --plugin-dir ./node_modules/aiscii')
+  console.log('Then use /aiscii:generate and /aiscii:convert in your Claude session.')
 }
 
 async function convert() {
