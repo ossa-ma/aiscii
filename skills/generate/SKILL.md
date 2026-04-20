@@ -1,3 +1,7 @@
+---
+description: Generate a procedural ASCII animation program. Use when the user wants to create an animation, visual effect, or interactive ASCII art from scratch using code — e.g. "make a plasma wave", "create a starfield", "build a particle effect".
+---
+
 Generate an aiscii animation program based on the user's description.
 
 ## What is aiscii

@@ -1,3 +1,7 @@
+---
+description: Convert an image, GIF, or video file into an ASCII art animation program. Use when the user wants to turn existing media into ASCII — e.g. "convert this GIF to ASCII", "make an ASCII sprite from this PNG", "turn this video into an ASCII animation".
+---
+
 Convert a source image, GIF, or video into an ASCII art program using the aiscii CLI.
 
 You are the intelligence layer. The CLI is deterministic — it executes exactly what flags it receives. Your job is to analyze the source, make the decisions a human art director would make, pick the right flags, and iterate until the output looks good.
