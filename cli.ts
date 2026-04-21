@@ -75,7 +75,7 @@ async function convert() {
   let source = ''
   let style = 'default'
   let colsOverride: number | undefined
-  let output = 'terminal'
+  let output = process.stdout.isTTY ? 'html-open' : 'terminal'
   let noBg = false
   let bgColor: string | undefined
   let color = 'white'
@@ -195,8 +195,18 @@ async function convert() {
   // Output
   if (output === 'json') {
     process.stdout.write(toJSON(cellFrames))
-  } else if (output === 'html') {
-    process.stdout.write(toHTML(styledFrames))
+  } else if (output === 'html' || output === 'html-open') {
+    const html = toHTML(styledFrames)
+    if (output === 'html-open') {
+      const { tmpdir } = await import('os')
+      const { writeFileSync } = await import('fs')
+      const tmp = `${tmpdir()}/aiscii-preview-${Date.now()}.html`
+      writeFileSync(tmp, html)
+      console.error(`Preview: ${tmp}`)
+      Bun.spawn(['open', tmp])
+    } else {
+      process.stdout.write(html)
+    }
   } else if (output === 'program') {
     const name = basename(source).replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9]/g, '_') + 'Program'
     process.stdout.write(toProgram(styledFrames, { name }))
