@@ -12,3 +12,9 @@ programs/*
 !programs/donut.ts
 !programs/donuts.ts
 !programs/aurora.ts
+
+# Gallery
+gallery/
+
+# Local artifacts and drafts
+distribution-gap.md
