@@ -209,7 +209,17 @@ async function convert() {
     }
   } else if (output === 'program') {
     const name = basename(source).replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9]/g, '_') + 'Program'
-    process.stdout.write(toProgram(styledFrames, { name }))
+    const code = toProgram(styledFrames, { name })
+    if (process.stdout.isTTY) {
+      const { mkdirSync, writeFileSync } = await import('fs')
+      const fileName = basename(source).replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9]/g, '_')
+      const outPath = `programs/${fileName}.ts`
+      mkdirSync('programs', { recursive: true })
+      writeFileSync(outPath, code)
+      console.error(`Saved: ${outPath}`)
+    } else {
+      process.stdout.write(code)
+    }
   } else {
     // Terminal
     if (styledFrames.length === 1) {
