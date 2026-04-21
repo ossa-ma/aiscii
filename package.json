@@ -1,6 +1,6 @@
 {
   "name": "aiscii",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Browser-based ASCII animation runtime with a Claude Code plugin — generate procedural animations or convert images, GIFs, and video to ASCII art",
   "type": "module",
   "license": "PolyForm-Shield-1.0.0",
