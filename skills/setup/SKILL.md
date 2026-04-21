@@ -31,17 +31,7 @@ bunx aiscii init
 
 Explain: this fetches aiscii from npm and creates `index.html`, `main.ts`, `programs/plasma.ts`, `server.ts`, and `package.json`. Then run it.
 
-## Step 2: Install dependencies
-
-Tell the user you are about to run:
-
-```bash
-bun install
-```
-
-Explain: this installs the aiscii runtime into `node_modules/` so the dev server and Claude Code plugin can resolve it. Then run it.
-
-## Step 3: Tell the user what's next
+## Step 2: Tell the user what's next
 
 After setup completes, give the user exactly these next steps:
 
