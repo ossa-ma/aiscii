@@ -2,6 +2,7 @@
 
 import { mkdirSync, copyFileSync, existsSync, readFileSync, writeFileSync } from 'fs'
 import { join, basename } from 'path'
+import { spawnSync } from 'child_process'
 
 const PKG = import.meta.dir
 const CWD = process.cwd()
@@ -57,6 +58,9 @@ function init() {
       console.log('  update  package.json  (added dev script)')
     }
   }
+
+  console.log('\nInstalling dependencies...')
+  spawnSync('bun', ['install'], { stdio: 'inherit', cwd: CWD })
 
   console.log('\nReady. Run `bun dev` to start.')
   console.log('\nClaude Code plugin: activate with')
