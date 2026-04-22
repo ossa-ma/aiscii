@@ -115,7 +115,7 @@ async function decodeGif(path: string): Promise<Frame[]> {
       data: new Uint8Array(canvas),
       width: canvasWidth,
       height: canvasHeight,
-      delay: delay * 10, // gifuct-js delay is in centiseconds
+      delay, // gifuct-js already returns delay in milliseconds
     })
 
     // Handle disposal

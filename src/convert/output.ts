@@ -183,9 +183,13 @@ export function toProgram(
 ): string {
   const name = options.name ?? 'convertedProgram'
   const bg = options.backgroundColor ?? '#000000'
-  const fps = options.fps ?? (frames.length > 1 && frames[0].delay > 0
-    ? Math.round(1000 / frames[0].delay)
-    : 24)
+
+  // Preserve each frame's original delay so variable-timing GIFs play back correctly.
+  // Fall back to 40ms (25fps) for frames with missing delay metadata.
+  const delays = frames.map(f => f.delay > 0 ? f.delay : 40)
+  const minDelay = Math.min(...delays)
+  // Runtime fps must tick fast enough to catch the shortest frame transition.
+  const fps = options.fps ?? Math.min(60, Math.max(12, Math.round(1000 / minDelay)))
 
   const cols = frames[0]?.cols ?? 0
   const rows = frames[0]?.rows ?? 0
@@ -235,6 +239,9 @@ export function toProgram(
     return `[${rowStrs.join(', ')}]`
   }).join(',\n')
 
+  const delaysStr = `[${delays.join(', ')}]`
+  const totalDuration = delays.reduce((a, b) => a + b, 0)
+
   return `import type { Program, Cell, Context, Cursor } from 'aiscii'
 
 const FRAMES: string[][] = [
@@ -243,6 +250,8 @@ ${framesArrayStr}
 const FRAME_WIDTH = ${cols}
 const FRAME_HEIGHT = ${rows}
 const FRAME_COUNT = ${frames.length}
+const DELAYS: number[] = ${delaysStr}
+const TOTAL_DURATION = ${totalDuration}
 
 interface State {
   frameIndex: number
@@ -271,8 +280,14 @@ export const ${name}: Program<State> = {
       buffer[i] = { char: ' ', backgroundColor: '${bg}' }
     }
 
-    // Current animation frame
-    const frameIdx = Math.floor(time / ${Math.round(1000 / fps)}) % FRAME_COUNT
+    // Current animation frame — walk the per-frame delay table to preserve
+    // variable GIF timing rather than assuming a fixed interval.
+    let t = time % TOTAL_DURATION
+    let frameIdx = FRAME_COUNT - 1
+    for (let i = 0; i < FRAME_COUNT; i++) {
+      if (t < DELAYS[i]) { frameIdx = i; break }
+      t -= DELAYS[i]
+    }
     const frame = FRAMES[frameIdx]
 
     // Center the sprite
