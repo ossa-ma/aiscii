@@ -63,9 +63,10 @@ function init() {
   spawnSync('bun', ['install'], { stdio: 'inherit', cwd: CWD })
 
   console.log('\nReady. Run `bun dev` to start.')
-  console.log('\nClaude Code plugin: activate with')
-  console.log('  claude --plugin-dir ./node_modules/aiscii')
-  console.log('Then use /aiscii:generate and /aiscii:convert in your Claude session.')
+  console.log('\nClaude Code plugin: install permanently with')
+  console.log('  /plugin marketplace add ossa-ma/aiscii')
+  console.log('  /plugin install aiscii@aiscii')
+  console.log('Then use /aiscii:generate and /aiscii:convert in any Claude session.')
 }
 
 async function convert() {

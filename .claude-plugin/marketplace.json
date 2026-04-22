@@ -1,0 +1,23 @@
+{
+  "name": "aiscii",
+  "owner": {
+    "name": "ossa-ma",
+    "email": "ossa-ma@users.noreply.github.com"
+  },
+  "metadata": {
+    "description": "ASCII animation — generate procedural programs or convert media (images, GIFs, video) into ASCII art",
+    "version": "0.2.0"
+  },
+  "plugins": [
+    {
+      "name": "aiscii",
+      "description": "Generate procedural ASCII animations or convert images, GIFs, and video to ASCII programs",
+      "source": "./",
+      "skills": [
+        "./skills/convert",
+        "./skills/generate",
+        "./skills/setup"
+      ]
+    }
+  ]
+}
