@@ -1,6 +1,6 @@
 {
   "name": "aiscii",
   "description": "ASCII animation — generate procedural programs or convert media (images, GIFs, video) into ASCII art",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "author": { "name": "ossa-ma" }
 }
