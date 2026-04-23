@@ -45,7 +45,7 @@
   },
   "scripts": {
     "dev": "bun run server.ts",
-    "build": "bun build src/index.ts --outdir dist --target browser --sourcemap --minify && bun build src/modules/math.ts src/modules/sdf.ts src/modules/color.ts src/modules/noise.ts src/modules/vec2.ts src/modules/buffer.ts --outdir dist/modules --target browser --sourcemap --minify && bun build src/convert/index.ts --outfile dist/convert.js --target node --sourcemap --minify",
+    "build": "bun build src/index.ts --outdir dist --target browser --sourcemap --minify && bun build src/modules/math.ts src/modules/sdf.ts src/modules/color.ts src/modules/noise.ts src/modules/vec2.ts src/modules/buffer.ts --outdir dist/modules --target browser --sourcemap --minify && bun build src/convert/index.ts --outdir dist --entry-naming 'convert.[ext]' --target node --sourcemap --minify",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "bun run build"
   },
