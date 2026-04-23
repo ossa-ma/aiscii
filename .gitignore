@@ -16,6 +16,9 @@ programs/*
 # Gallery
 gallery/
 
+# Local shaders
+shaders/
+
 # Local artifacts and drafts
 distribution-gap.md
 
