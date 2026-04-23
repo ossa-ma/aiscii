@@ -20,11 +20,12 @@ This scaffolds a working project with a demo program and dev server. Open `http:
 
 ## Claude Code plugin
 
-aiscii ships as a Claude Code plugin with two skills. Install it once (persists across sessions):
+aiscii ships as a Claude Code plugin with three skills. Install it once (persists across sessions):
 
 ```
 /plugin marketplace add ossa-ma/aiscii
 /plugin install aiscii@aiscii
+/reload-plugins
 ```
 
 To opt in to auto-updates: `/plugin` → Marketplaces → `aiscii` → Enable auto-update.

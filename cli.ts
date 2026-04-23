@@ -12,8 +12,10 @@ if (cmd === 'init') {
   init()
 } else if (cmd === 'convert') {
   await convert()
+} else if (cmd === 'preview') {
+  await preview()
 } else {
-  console.log('Usage: aiscii <command>\n\nCommands:\n  init      Set up an aiscii project\n  convert   Convert image/GIF/video to ASCII art')
+  console.log('Usage: aiscii <command>\n\nCommands:\n  init      Set up an aiscii project\n  convert   Convert image/GIF/video to ASCII art\n  preview   Extract one representative frame from a source as PNG')
   process.exit(1)
 }
 
@@ -231,4 +233,59 @@ async function convert() {
       await playAnsi(styledFrames)
     }
   }
+}
+
+async function preview() {
+  const args = process.argv.slice(3)
+  let source = ''
+  let frameOverride: number | undefined
+  let output: string | undefined
+
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i]
+    if (arg === '--frame' && args[i + 1]) {
+      frameOverride = parseInt(args[++i], 10)
+    } else if (arg === '--output' && args[i + 1]) {
+      output = args[++i]
+    } else if (!arg.startsWith('-')) {
+      source = arg
+    }
+  }
+
+  if (!source) {
+    console.log('Usage: aiscii preview <source> [--frame <n>] [--output <path>]')
+    process.exit(1)
+  }
+
+  if (!existsSync(source)) {
+    console.error(`File not found: ${source}`)
+    process.exit(1)
+  }
+
+  const { decode } = await import('./src/convert/index')
+  const frames = await decode(source)
+
+  const idx = frameOverride ?? Math.floor(frames.length / 2)
+  if (idx < 0 || idx >= frames.length) {
+    console.error(`Frame ${idx} out of range (0..${frames.length - 1})`)
+    process.exit(1)
+  }
+
+  const frame = frames[idx]
+
+  const { default: encode } = await import('@jsquash/png/encode')
+  const imageData = {
+    data: new Uint8ClampedArray(frame.data.buffer, frame.data.byteOffset, frame.data.byteLength),
+    width: frame.width,
+    height: frame.height,
+    colorSpace: 'srgb' as const,
+  }
+  const png = await encode(imageData)
+
+  const { tmpdir } = await import('os')
+  const outPath = output ?? `${tmpdir()}/aiscii-preview-${basename(source).replace(/\.[^.]+$/, '')}-frame${idx}.png`
+  writeFileSync(outPath, new Uint8Array(png))
+
+  console.error(`Extracted frame ${idx}/${frames.length - 1} (${frame.width}x${frame.height})`)
+  console.log(outPath)
 }

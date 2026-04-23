@@ -46,6 +46,16 @@ Read or view the source file before doing anything. You need to understand:
 - Is it a GIF or video? (animated) or a still image?
 - What is the intended use? (sprite in an aiscii program, full-screen art, terminal output)
 
+**For images and GIFs:** open with the Read tool directly.
+
+**For videos (mp4, webm, mov):** the Read tool cannot open video files. Extract a representative frame first with the CLI's `preview` command, then Read the resulting PNG:
+
+```bash
+bunx aiscii preview <source>        # prints the PNG path to stdout
+```
+
+Defaults to the middle frame, which usually skips title cards and blank intros. Use `--frame <n>` to pick a specific frame if needed. Never shell out to `ffmpeg` directly — the CLI handles decoding uniformly across gif/mp4/image.
+
 ## Step 2: Decide the flags
 
 ### Background removal
