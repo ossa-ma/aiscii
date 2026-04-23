@@ -13,11 +13,7 @@
       "name": "aiscii",
       "description": "Generate procedural ASCII animations or convert images, GIFs, and video to ASCII programs",
       "source": "./",
-      "skills": [
-        "./skills/convert",
-        "./skills/generate",
-        "./skills/setup"
-      ]
+      "skills": ["./skills/"]
     }
   ]
 }
