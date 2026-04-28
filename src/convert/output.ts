@@ -194,57 +194,81 @@ export function toProgram(
   const cols = frames[0]?.cols ?? 0
   const rows = frames[0]?.rows ?? 0
 
-  // Extract frame data as string[][] (each frame = array of row strings)
-  const frameStrings: string[][][] = frames.map(frame => {
-    const rowStrings: string[][] = []
+  // Build deduplicated palette of all non-transparent colors used.
+  // Index 0 is reserved as "no color" for transparent/space cells.
+  // RGB channels are quantized to multiples of 8 to keep palette size manageable
+  // for high-resolution sources, the eye can't distinguish rgb(101,...) from rgb(104,...).
+  const palette: string[] = ['']
+  const colorIndex = new Map<string, number>()
+  function quantize(c: string): string {
+    const m = c.match(/^rgb\((\d+),(\d+),(\d+)\)$/)
+    if (!m) return c
+    const q = (n: number) => Math.min(255, Math.round(parseInt(m[n], 10) / 8) * 8)
+    return `rgb(${q(1)},${q(2)},${q(3)})`
+  }
+  function indexOfColor(c: string): number {
+    const qc = quantize(c)
+    let idx = colorIndex.get(qc)
+    if (idx === undefined) {
+      idx = palette.length
+      palette.push(qc)
+      colorIndex.set(qc, idx)
+    }
+    return idx
+  }
+
+  // Extract frame data: each row gets a chars string and a parallel
+  // colors[] of palette indices, trimmed of trailing transparent cells.
+  type Row = { chars: string; colors: number[] }
+  const frameRows: Row[][] = frames.map(frame => {
+    const rowsOut: Row[] = []
     for (let y = 0; y < frame.rows; y++) {
       const chars: string[] = []
+      const colors: number[] = []
       for (let x = 0; x < frame.cols; x++) {
         const cell = frame.cells[x + y * frame.cols]
-        chars.push(cell.color === 'transparent' || cell.char === ' ' ? ' ' : cell.char)
+        if (cell.color === 'transparent' || cell.char === ' ') {
+          chars.push(' ')
+          colors.push(0)
+        } else {
+          chars.push(cell.char)
+          colors.push(indexOfColor(cell.color))
+        }
       }
-      // Find the last non-space character to trim trailing spaces
+      // Trim trailing transparent/space cells from the right
       let lastNonSpace = chars.length - 1
       while (lastNonSpace >= 0 && chars[lastNonSpace] === ' ') lastNonSpace--
-      rowStrings.push(chars.slice(0, lastNonSpace + 1))
+      rowsOut.push({
+        chars: chars.slice(0, lastNonSpace + 1).join(''),
+        colors: colors.slice(0, lastNonSpace + 1),
+      })
     }
-    return rowStrings
+    return rowsOut
   })
 
-  // Collect unique non-space characters and colors used
-  const colorSet = new Set<string>()
-  for (const frame of frames) {
-    for (const cell of frame.cells) {
-      if (cell.color !== 'transparent' && cell.char !== ' ') {
-        colorSet.add(cell.color)
-      }
-    }
-  }
-  const primaryColor = colorSet.size === 1
-    ? [...colorSet][0]
-    : '#ffffff'
-
-  // Serialize frames as string arrays (each row is a string)
-  const serializedFrames = frameStrings.map(rows =>
-    rows.map(chars => chars.join(''))
-  )
-
-  // Escape backtick and backslash for template literal safety
+  // Escape backslash and double-quote for double-quoted string safety
   function escapeStr(s: string): string {
-    return s.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$')
+    return s.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
   }
 
-  const framesArrayStr = serializedFrames.map(rows => {
-    const rowStrs = rows.map(row => `"${escapeStr(row)}"`)
-    return `[${rowStrs.join(', ')}]`
+  const framesArrayStr = frameRows.map(rowsOut => {
+    const rowStrs = rowsOut.map(row => {
+      // Pack colors as a tight array literal. Keep numeric for fast lookup.
+      return `{c:"${escapeStr(row.chars)}",p:[${row.colors.join(',')}]}`
+    })
+    return `[${rowStrs.join(',')}]`
   }).join(',\n')
 
+  const paletteStr = `[${palette.map(c => `"${escapeStr(c)}"`).join(',')}]`
   const delaysStr = `[${delays.join(', ')}]`
   const totalDuration = delays.reduce((a, b) => a + b, 0)
 
   return `import type { Program, Cell, Context, Cursor } from 'aiscii'
 
-const FRAMES: string[][] = [
+interface Row { c: string; p: number[] }
+
+const PALETTE: string[] = ${paletteStr}
+const FRAMES: Row[][] = [
 ${framesArrayStr}
 ]
 const FRAME_WIDTH = ${cols}
@@ -261,7 +285,7 @@ export const ${name}: Program<State> = {
   settings: {
     fps: ${fps},
     backgroundColor: '${bg}',
-    color: '${primaryColor}',
+    color: '#ffffff',
     fontSize: '12px',
     fontFamily: '"Courier New", Courier, monospace',
     lineHeight: '1.15em',
@@ -280,8 +304,7 @@ export const ${name}: Program<State> = {
       buffer[i] = { char: ' ', backgroundColor: '${bg}' }
     }
 
-    // Current animation frame — walk the per-frame delay table to preserve
-    // variable GIF timing rather than assuming a fixed interval.
+    // Walk the per-frame delay table to preserve variable GIF timing.
     let t = time % TOTAL_DURATION
     let frameIdx = FRAME_COUNT - 1
     for (let i = 0; i < FRAME_COUNT; i++) {
@@ -290,20 +313,21 @@ export const ${name}: Program<State> = {
     }
     const frame = FRAMES[frameIdx]
 
-    // Center the sprite
     const ox = Math.floor((cols - FRAME_WIDTH) / 2)
     const oy = Math.floor((rows - FRAME_HEIGHT) / 2)
 
     for (let fy = 0; fy < frame.length && oy + fy < rows; fy++) {
       if (oy + fy < 0) continue
-      const line = frame[fy]
-      for (let fx = 0; fx < line.length && ox + fx < cols; fx++) {
+      const row = frame[fy]
+      const chars = row.c
+      const palIdx = row.p
+      for (let fx = 0; fx < chars.length && ox + fx < cols; fx++) {
         if (ox + fx < 0) continue
-        const ch = line[fx]
+        const ch = chars[fx]
         if (ch === ' ') continue
         const idx = (ox + fx) + (oy + fy) * cols
         if (idx >= 0 && idx < buffer.length) {
-          buffer[idx] = { char: ch, color: '${primaryColor}', backgroundColor: '${bg}' }
+          buffer[idx] = { char: ch, color: PALETTE[palIdx[fx]], backgroundColor: '${bg}' }
         }
       }
     }
